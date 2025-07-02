@@ -1,0 +1,26 @@
+{
+    "id": "D092EAEF",
+    "path": "~/00_unibern_job/unibern_pc/CN_model/07_prepare_CN_model_data/scripts/00_installation.R",
+    "project_path": "scripts/00_installation.R",
+    "type": "r_source",
+    "hash": "3501062939",
+    "contents": "",
+    "dirty": false,
+    "created": 1749121659556.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "5,40",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1749121685,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1749121685062,
+    "read_only": false,
+    "read_only_alternatives": []
+}
