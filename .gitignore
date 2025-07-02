@@ -1,2 +1,5 @@
 # Ignore everything in the specified data folder
 /data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/
+
+/2021-2023_fabio_data.xlsx
+/07_prepare_CN_model_data.Rproj
