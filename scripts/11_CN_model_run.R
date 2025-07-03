@@ -11,13 +11,61 @@ suppressPackageStartupMessages({
   library(readr)
   library(naniar)
   library(purrr)
-  library(rsofun)
 })
 
+# install CN-model
+devtools::install_github(
+  "stineb/rsofun@v1.0_cnmodel",
+  ref = "cnmodel",
+  upgrade = "never",
+  force = TRUE
+)
+library(rsofun)
+
 # load drivers data
-drivers <- readRDS("./data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run.rds")
+drivers <- readRDS(here::here("data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run.rds"))
 colnames(drivers$forcing[[1]])
 str(drivers$forcing[[1]])
+
+# check drivers consistency with FluxDataKit
+drivers_fdk <- read_rds("~/data_2/FluxDataKit/v3.4/zenodo_upload/rsofun_driver_data_v3.4.2.rds")
+
+tmp <- filter(drivers_fdk, sitename == "CH-Oe2")$forcing[[1]] |> 
+  right_join(
+    filter(drivers, sitename == "CH-Oe2")$forcing[[1]],
+    by = join_by(date),
+    suffix = c("_fdk", "_muh")
+    )
+
+# temperature: correct units, but inconsistent values - not our problem...
+tmp |> 
+  ggplot(aes(temp_fdk, temp_muh)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted")
+
+# vpd: wrong units
+tmp |> 
+  ggplot(aes(vpd_fdk, vpd_muh)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted")
+
+# ppfd: wrong units
+tmp |> 
+  ggplot(aes(ppfd_fdk, ppfd_muh)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted")
+
+# fapar: not satisfyingly consistent
+tmp |> 
+  ggplot(aes(fapar_fdk, fapar_muh)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted")
+
+tmp |> 
+  ggplot() +
+  geom_line(aes(date, fapar_muh), color = "red") +
+  geom_line(aes(date, fapar_fdk))
+  
 
 # Check date range and completeness of forcing data
 forcing_data <- drivers$forcing[[1]]
@@ -79,10 +127,8 @@ plot_forcing <- drivers$forcing[[1]] %>%
         legend.position = "none")  # Hide legend since colors are redundant with facets
 
 # Save the plot
-ggsave("./data/forcing_data_variables.png", plot_forcing, width = 20, height = 10, dpi = 300, bg = "white")
+ggsave(here::here("fig/forcing_data_variables.pdf"), plot_forcing, width = 20, height = 10, dpi = 300, bg = "white")
 plot_forcing
-
-
 
 # Check for missing values in the drivers object in forcing data
 ### check for missing values in the data----------------
@@ -91,7 +137,7 @@ miss_plot <- drivers |>
   unnest(forcing) |>
   vis_miss(warn_large_data = FALSE)
 
-ggsave("./data/01_vis_miss_drivers.png", miss_plot, width = 10, height = 6)
+ggsave(here::here("fig/01_vis_miss_drivers.pdf"), miss_plot, width = 10, height = 6)
 miss_plot
 
 
@@ -209,16 +255,20 @@ pars <- list(
 )
 
 # make dir
-if (!dir.exists("./output")) {
-  dir.create("./output")
+if (!dir.exists(here::here("output"))) {
+  dir.create(here::here("output"))
 }
+if (!dir.exists(here::here("out"))) {
+  dir.create(here::here("out"))
+}
+
 # Function to run the model and save the output
 cnmodel_run_save <- function(drivers, pars, save_path, file_basename) {
   output_04_23 <- runread_cnmodel_f(drivers = drivers, 
                                     par = pars,
                                     ncores = 12,
                                     makecheck = FALSE,  # Set to FALSE to avoid strict checks
-                                    parallel = TRUE
+                                    parallel = FALSE
   )
   rds_filename <- paste0(file_basename, ".rds")
   if (!dir.exists(save_path)) {
@@ -230,9 +280,10 @@ cnmodel_run_save <- function(drivers, pars, save_path, file_basename) {
 }
 # Example usage:
 # Run the model with filtered data (complete years only)
-cnmodel_run_save(drivers, pars, "./output", "output_04_23")
+cnmodel_run_save(drivers, pars, here::here("output"), "output_04_23")
+
 # Read the output
-output_04_23 <- readRDS("./output/output_04_23.rds")
+output_04_23 <- readRDS(here::here("output/output_04_23.rds"))
 
 # plot output results
 # Plot GPP over time
@@ -247,7 +298,7 @@ plot_gpp <- ggplot(output_04_23$data[[1]], aes(x = date, y = gpp)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the GPP plot
-ggsave("./output/gpp_plot.png", plot_gpp, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/gpp_plot.pdf"), plot_gpp, width = 14, height = 4, dpi = 300, bg = "white")
 plot_gpp
 
 # Plot NPP over time
@@ -262,7 +313,7 @@ plot_npp <- ggplot(output_04_23$data[[1]], aes(x = date, y = npp)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NPP plot
-ggsave("./output/npp_plot.png", plot_npp, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/npp_plot.pdf"), plot_npp, width = 14, height = 4, dpi = 300, bg = "white")
 plot_npp
 
 
@@ -278,7 +329,7 @@ plot_en2o <- ggplot(output_04_23$data[[1]], aes(x = date, y = en2o)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the EN2O plot
-ggsave("./output/en2o_plot.png", plot_en2o, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/en2o_plot.pdf"), plot_en2o, width = 14, height = 4, dpi = 300, bg = "white")
 plot_en2o
 
 # Plot ENLeach over time
@@ -293,7 +344,7 @@ plot_enleach <- ggplot(output_04_23$data[[1]], aes(x = date, y = enleach)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the ENLeach plot
-ggsave("./output/enleach_plot.png", plot_enleach, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/enleach_plot.pdf"), plot_enleach, width = 14, height = 4, dpi = 300, bg = "white")
 plot_enleach
 
 # Plot NPP over time
@@ -308,7 +359,7 @@ plot_npp <- ggplot(output_04_23$data[[1]], aes(x = date, y = npp)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NPP plot
-ggsave("./output/npp_plot.png", plot_npp, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/npp_plot.pdf"), plot_npp, width = 14, height = 4, dpi = 300, bg = "white")
 plot_npp
 
 # Plot NUP over time
@@ -323,7 +374,7 @@ plot_nup <- ggplot(output_04_23$data[[1]], aes(x = date, y = nup)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NUP plot
-ggsave("./output/nup_plot.png", plot_nup, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/nup_plot.pdf"), plot_nup, width = 14, height = 4, dpi = 300, bg = "white")
 plot_nup
 
 # Plot NLOSS over time
@@ -338,7 +389,7 @@ plot_nloss <- ggplot(output_04_23$data[[1]], aes(x = date, y = nloss)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NLOSS plot
-ggsave("./output/nloss_plot.png", plot_nloss, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/nloss_plot.pdf"), plot_nloss, width = 14, height = 4, dpi = 300, bg = "white")
 plot_nloss
 
 # Plot NLABL over time
@@ -353,7 +404,7 @@ plot_nlabl <- ggplot(output_04_23$data[[1]], aes(x = date, y = nlabl)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NLABL plot
-ggsave("./output/nlabl_plot.png", plot_nlabl, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/nlabl_plot.pdf"), plot_nlabl, width = 14, height = 4, dpi = 300, bg = "white")
 plot_nlabl
 
 # Plot NLEAF over time
@@ -368,7 +419,7 @@ plot_nleaf <- ggplot(output_04_23$data[[1]], aes(x = date, y = nleaf)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NLEAF plot
-ggsave("./output/nleaf_plot.png", plot_nleaf, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/nleaf_plot.pdf"), plot_nleaf, width = 14, height = 4, dpi = 300, bg = "white")
 plot_nleaf
 
 # Plot NROOT over time
@@ -383,7 +434,7 @@ plot_nroot <- ggplot(output_04_23$data[[1]], aes(x = date, y = nroot)) +
   theme(panel.grid.major.y = element_line())
 
 # Save the NROOT plot
-ggsave("./output/nroot_plot.png", plot_nroot, width = 14, height = 4, dpi = 300, bg = "white")
+ggsave(here::here("output/nroot_plot.pdf"), plot_nroot, width = 14, height = 4, dpi = 300, bg = "white")
 plot_nroot
 
 # Combine all plots into a single figure
@@ -398,7 +449,7 @@ combined_plot <- (plot_en2o + plot_enleach + plot_npp + plot_nup) /
         plot.caption = element_text(hjust = 0.5, size = 10))
 
 # Save the combined plot
-ggsave("./output/combined_model_outputs.png", combined_plot, width = 16, height = 12, dpi = 300, bg = "white")
+ggsave(here::here("output/combined_model_outputs.pdf"), combined_plot, width = 16, height = 12, dpi = 300, bg = "white")
 combined_plot
 
 
