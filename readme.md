@@ -252,7 +252,7 @@ Here is the [script](./scripts/01_temp_tmin_tmax.R) to prepare the temperature d
 #### ppfd
 
 - ICOS data contains ppfd as `PPFD_IN, PPFD_IN_QC, PPFD_DIF, PPFD_DIF_QC`, however, the the values are not consistent and have many missing or anomalous values as extracted by this [script](./scripts/03a_ppfd.ipynb).
-- We will calculate the `ppfd` using the SPLASH model, which is a part of the `pyrealm` package. The SPLASH model will calculate the photosynthetic photon flux density (PPFD) based on the available variables and site information, we will use `SW_IN_F` shortwave radiation data in order to get accurate values. Here is the [script](./scripts/03b_ppfd_SPLASH.ipynb) to prepare the ppfd data.
+- We will calculate the `ppfd` using the [SPLASH model](https://pyrealm.readthedocs.io/en/latest/users/splash.html#), which is a part of the `pyrealm` package. The SPLASH model will calculate the photosynthetic photon flux density (PPFD) based on the available variables and site information, we will use `SW_IN_F` shortwave radiation data in order to get accurate values. Here is the [script](./scripts/03b_ppfd_SPLASH.ipynb) to prepare the ppfd data.
 
 1. First create a conda environment with the required packages:
 ```bash

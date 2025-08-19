@@ -1,11 +1,12 @@
 # Ignore everything in the specified data folder
-/data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/
-/data/fabio_2004_2023/
+# /data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/
+# /data/fabio_2004_2023/
 
-/07_prepare_CN_model_data.Rproj
+# /07_prepare_CN_model_data.Rproj
 
 /.DS_Store
 */.DS_Store
 */*/.DS_Store
 /.*
-.Rproj.user
+/.Rproj.user/
+

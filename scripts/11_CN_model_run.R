@@ -13,23 +13,23 @@ suppressPackageStartupMessages({
   library(purrr)
 })
 
-# install CN-model
-devtools::install_github(
-  "stineb/rsofun@v1.0_cnmodel",
-  ref = "cnmodel",
-  upgrade = "never",
-  force = TRUE
-)
+# # install CN-model
+# devtools::install_github(
+#   "stineb/rsofun@v1.0_cnmodel",
+#   ref = "cnmodel",
+#   upgrade = "never",
+#   force = TRUE
+# )
 library(rsofun)
 
 # load drivers data
-drivers <- readRDS(here::here("data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run.rds"))
+drivers <- readRDS(here::here("data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run_02.rds"))
 colnames(drivers$forcing[[1]])
 str(drivers$forcing[[1]])
 
 # check drivers consistency with FluxDataKit
-drivers_fdk <- read_rds("~/data_2/FluxDataKit/v3.4/zenodo_upload/rsofun_driver_data_v3.4.2.rds")
-
+drivers_fdk <- read_rds("data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/rsofun_driver_data_v3.4.2.rds")
+drivers_fdk <- drivers_fdk |> filter(sitename == "CH-Oe2") 
 tmp <- filter(drivers_fdk, sitename == "CH-Oe2")$forcing[[1]] |> 
   right_join(
     filter(drivers, sitename == "CH-Oe2")$forcing[[1]],
