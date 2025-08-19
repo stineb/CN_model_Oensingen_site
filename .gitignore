@@ -2,7 +2,6 @@
 /data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/
 /data/fabio_2004_2023/
 
-
 /07_prepare_CN_model_data.Rproj
 
 /.DS_Store
@@ -12,4 +11,6 @@
 /.Rproj.user/
 /.RData
 
-
+# Additional large file patterns
+*.csv
+*.rds
