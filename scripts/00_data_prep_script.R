@@ -717,3 +717,85 @@ saveRDS(drivers, "data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run_19082025.rds
 
 
 
+### Comparison of Drivers Data with _fdk data
+# Load packages without warnings and messages
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(patchwork)
+  library(cowplot)
+  library(visdat)
+  library(here)
+  library(lubridate)
+  library(readr)
+  library(naniar)
+  library(purrr)
+})
+
+# load drivers data
+drivers <- readRDS(here::here("data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run_19082025.rds"))
+colnames(drivers$forcing[[1]])
+str(drivers$forcing[[1]])
+
+# check drivers consistency with FluxDataKit
+drivers_fdk <- read_rds("data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/rsofun_driver_data_v3.4.2.rds")
+drivers_fdk <- drivers_fdk |> filter(sitename == "CH-Oe2")
+colnames(drivers_fdk$forcing[[1]])
+str(drivers_fdk$forcing[[1]])
+
+# Create directory if it doesn't exist
+if (!dir.exists("comparison_plots")) dir.create("comparison_plots")
+
+# Variables to plot
+variables <- c('temp', 'vpd', 'ppfd', 'patm', 'snow', 'rain', 
+         'tmin', 'tmax', 'vwind', 'fapar', 'co2', 'ccov', 'nee')
+
+# Join datasets
+tmp <- drivers_fdk$forcing[[1]] |> 
+  right_join(
+  drivers$forcing[[1]],
+  by = join_by(date),
+  suffix = c("_fdk", "_muh")
+  )
+
+# Function to create and save scatter plot
+create_comparison_plot <- function(var_name, data, index) {
+  # Format index for filename (ensure 2 digits)
+  idx <- sprintf("%02d", index)
+  
+  # Create scatter plot
+  p1 <- data |> 
+  ggplot(aes_string(paste0(var_name, "_fdk"), paste0(var_name, "_muh"))) +
+  geom_point(alpha = 0.3) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dotted") +
+  labs(title = paste("Comparison of", var_name),
+     x = paste(var_name, "FDK"),
+     y = paste(var_name, "MUH"))
+  
+  # Create time series plot
+  p2 <- data |> 
+  ggplot() +
+  geom_line(aes(date, !!sym(paste0(var_name, "_muh"))), color = "red") +
+  geom_line(aes(date, !!sym(paste0(var_name, "_fdk")))) +
+  labs(title = paste("Time series of", var_name),
+     x = "Date", 
+     y = var_name)
+  
+  # Combine plots
+  combined_plot <- p1 + p2 + plot_layout(ncol = 2)
+  
+  # Save plot
+  ggsave(paste0("comparison_plots/", idx, "_new_", var_name, ".png"), 
+     combined_plot, 
+     width = 10, height = 5)
+  
+  return(combined_plot)
+}
+
+# Create plots for all variables
+plots <- map2(variables, 1:length(variables), 
+       ~create_comparison_plot(.x, tmp, .y))
+
+# Print message
+cat("All comparison plots saved in 'comparison_plots' directory\n")

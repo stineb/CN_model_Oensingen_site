@@ -23,7 +23,7 @@ suppressPackageStartupMessages({
 library(rsofun)
 
 # load drivers data
-drivers <- readRDS(here::here("data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run_02.rds"))
+drivers <- readRDS(here::here("data/CH-Oe2_2004-2023_final_ready_for_CNmodel_run_19082025.rds"))
 colnames(drivers$forcing[[1]])
 str(drivers$forcing[[1]])
 
