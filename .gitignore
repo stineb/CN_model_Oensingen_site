@@ -1,5 +1,5 @@
 # Ignore everything in the specified data folder
-/data/LX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/
+/data/FLX_CH-Oe2_FLUXNET2015_FULLSET_2004-2023_1-3/
 /data/fabio_2004_2023/
 
 
@@ -11,5 +11,5 @@
 /.*
 /.Rproj.user/
 /.RData
-.Data
+
 
